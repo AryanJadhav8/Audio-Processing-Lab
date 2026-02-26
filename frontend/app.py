@@ -427,8 +427,33 @@ def main() -> None:
         is_trim = effect_cfg["value"] == "trim"
 
         if is_eq:
-            # EQ is rendered in the main panel — just show a note here
-            st.info("🎚️ Adjust the equalizer bands in the **main panel** →")
+            # ── 7-Band Parametric Equalizer ──────────────────────────────
+            st.markdown("#### 🎚️ 7-Band Equalizer")
+            
+            # Define the 7 EQ bands with frequencies
+            eq_bands = [
+                ("sub_bass", "Sub Bass", "60 Hz"),
+                ("bass", "Bass", "170 Hz"),
+                ("low_mid", "Low Mid", "500 Hz"),
+                ("mid", "Mid", "1 kHz"),
+                ("high_mid", "High Mid", "3 kHz"),
+                ("presence", "Presence", "6 kHz"),
+                ("brilliance", "Brilliance", "12 kHz"),
+            ]
+            
+            # Create two columns for the sliders
+            cols = st.columns(2)
+            for idx, (band_key, band_label, band_freq) in enumerate(eq_bands):
+                col = cols[idx % 2]
+                with col:
+                    params[band_key] = st.slider(
+                        f"{band_label} ({band_freq})",
+                        min_value=-12.0,
+                        max_value=12.0,
+                        value=0.0,
+                        step=0.5,
+                        key=f"eq_{band_key}",
+                    )
 
         elif is_trim and st.session_state.upload_info:
             # ── Trim: duration-aware sliders ───────────────────────────────
@@ -554,6 +579,11 @@ def main() -> None:
 
     upload_info = st.session_state.upload_info
     file_id = upload_info["file_id"]
+    
+    # Store EQ values in session state for visualization
+    # This will be updated by the sidebar sliders
+    from streamlit import session_state as ss
+    # Note: The sidebar sliders will update these keys automatically
 
     # ── Generate original visualizations (once) ───────────────────────────
     if st.session_state.original_viz is None:
@@ -587,6 +617,55 @@ def main() -> None:
     if orig_audio:
         st.audio(orig_audio, format="audio/mp3")
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── Equalizer Preview (if EQ is selected) ────────────────────────────
+    # Get the current gains from session state (set by sidebar sliders)
+    eq_gains = {
+        "sub_bass": st.session_state.get("eq_sub_bass", 0.0),
+        "bass": st.session_state.get("eq_bass", 0.0),
+        "low_mid": st.session_state.get("eq_low_mid", 0.0),
+        "mid": st.session_state.get("eq_mid", 0.0),
+        "high_mid": st.session_state.get("eq_high_mid", 0.0),
+        "presence": st.session_state.get("eq_presence", 0.0),
+        "brilliance": st.session_state.get("eq_brilliance", 0.0),
+    }
+    
+    # Only show if any EQ band has been adjusted (non-zero)
+    if any(v != 0.0 for v in eq_gains.values()):
+        st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><span class="effect-badge">EQUALIZER PREVIEW</span>', unsafe_allow_html=True)
+        
+        eq_bands_data = [
+            ("Sub Bass", "60 Hz", eq_gains["sub_bass"]),
+            ("Bass", "170 Hz", eq_gains["bass"]),
+            ("Low Mid", "500 Hz", eq_gains["low_mid"]),
+            ("Mid", "1 kHz", eq_gains["mid"]),
+            ("High Mid", "3 kHz", eq_gains["high_mid"]),
+            ("Presence", "6 kHz", eq_gains["presence"]),
+            ("Brilliance", "12 kHz", eq_gains["brilliance"]),
+        ]
+        
+        # Build EQ container with proper HTML structure
+        eq_html = '<div class="eq-container">'
+        for label, freq, gain in eq_bands_data:
+            bar_height = max(0, min(100, 50 + (gain / 12) * 50))
+            if gain > 1:
+                color = "#10b981"
+            elif gain < -1:
+                color = "#ef4444"
+            else:
+                color = "#7c3aed"
+            
+            eq_html += '<div class="eq-band">'
+            eq_html += f'<div class="eq-value">{gain:+.1f}</div>'
+            eq_html += f'<div style="width:100%;height:120px;background:rgba(255,255,255,0.05);border-radius:4px;position:relative;overflow:hidden;"><div style="position:absolute;bottom:0;left:2px;right:2px;height:{bar_height}%;background:linear-gradient(to top, {color}, {color}99);border-radius:2px;transition:all 0.2s ease;"></div></div>'
+            eq_html += f'<div class="eq-freq">{freq}</div>'
+            eq_html += f'<div class="eq-label">{label}</div>'
+            eq_html += '</div>'
+        eq_html += '</div>'
+        
+        st.markdown(eq_html, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Processed Audio Section ───────────────────────────────────────────
     proc_info = st.session_state.processed_info
