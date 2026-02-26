@@ -13,6 +13,7 @@ A production-ready, full-stack audio processing web application inspired by [Aud
 | 🌊 **Reverb** | Echo-based reverb with configurable decay & delay |
 | 🎧 **3D Audio** | Stereo widening via inter-channel delay & gain diff |
 | ✂️ **Trim** | Cut a section by start/end time |
+| |and many more....|
 
 Plus:
 - **Waveform** & **Spectrogram** visualisation (before & after)
@@ -82,7 +83,6 @@ pip install -r requirements.txt
 ### 2. Start the Backend (FastAPI)
 
 ```bash
-# From the project root (miniproject/)
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
