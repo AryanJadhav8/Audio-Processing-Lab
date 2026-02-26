@@ -1,0 +1,46 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# VS Code
+.vscode/
+
+# Streamlit config
+.streamlit/
+
+# Pytest cache
+.pytest_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Git
+.git/
+
+# Ignore frontend build artifacts (if any)
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# Ignore backend build artifacts (if any)
+backend/build/
+backend/dist/
